@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agent_client"
+version = "0.1.0"
+description = "LangChain AI Agent MCP Client with dual-stream observability"
+requires-python = ">=3.11"
+dependencies = [
+    "langchain>=0.3.0",
+    "langchain-mcp-adapters>=0.2.0",
+    "langchain-anthropic>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "langgraph>=0.2.0",
+    "fastmcp>=2.0.0",
+    "httpx>=0.27.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "anthropic>=0.40.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agent_client"]
+
+[project.scripts]
+start-agent = "agent_client.agent:main"
