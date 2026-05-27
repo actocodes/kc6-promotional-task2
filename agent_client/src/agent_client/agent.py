@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from langchain.agents import create_agent
-from langchain_mcp_adapters.callbacks import Callbacks, CallbackContext
+from langchain_mcp_adapters.callbacks import Callbacks
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from mcp.types import LoggingMessageNotificationParams
 
@@ -25,89 +25,86 @@ def _pick_model() -> str:
         return "claude-sonnet-4-5"
     if os.getenv("OPENAI_API_KEY"):
         return "openai:gpt-4o-mini"
-    raise RuntimeError(
-        "No LLM API key found. Set ANTHROPIC_API_KEY or OPENAI_API_KEY in .env"
-    )
+    
+    client_log.info("No cloud API keys detected. Falling back to local Ollama engine.")
+    return "ollama"
 
 def _on_server_log(
     params: LoggingMessageNotificationParams,
-    context: CallbackContext,
+    server_name: str,
 ) -> None:
     level = params.level if isinstance(params.level, str) else str(params.level)
     data  = params.data if isinstance(params.data, str) else str(params.data)
-    ingest_server_log(level, f"[{context.server_name}] {data}")
+    ingest_server_log(level, f"[{server_name}] {data}")
 
 async def run_agent(user_query: str) -> str:
+    client_log.info("Initializing agent run for query: %r", user_query)
+
+    try:
+        model_name = _pick_model()
+        client_log.info("Selected model: %s", model_name)
+    except RuntimeError as err:
+        client_log.critical("Model selection failed: %s", err)
+        raise
+
     client_log.info("Connecting to MCP server at %s", MCP_SERVER_URL)
 
-    callbacks = Callbacks(on_logging_message=_on_server_log)
-
-    from fastmcp.client.sampling.handlers.anthropic import AnthropicSamplingHandler
-    from fastmcp import Client as FastMCPClient
-
-    sampling_handler = None
-    anthropic_key = os.getenv("ANTHROPIC_API_KEY", "")
-    openai_key = os.getenv("OPENAI_API_KEY", "")
-
-    if anthropic_key:
-        sampling_handler = AnthropicSamplingHandler(default_model="claude-sonnet-4-5")
-        client_log.info("Sampling handler: AnthropicSamplingHandler (claude-sonnet-4-5)")
-    elif openai_key:
-        from fastmcp.client.sampling.handlers.openai import OpenAISamplingHandler
-        sampling_handler = OpenAISamplingHandler(default_model="gpt-4o-mini")
-        client_log.info("Sampling handler: OpenAISamplingHandler (gpt-4o-mini)")
-    else:
-        client_log.warning("No sampling handler configured — Reflection tool will error")
-
-    async with MultiServerMCPClient(
+    mcp_client = MultiServerMCPClient(
         connections={
             "thinking_agent_server": {
                 "transport": "http",
                 "url": MCP_SERVER_URL,
             }
         },
-        callbacks=callbacks,
-    ) as mcp_client:
-        client_log.info("MCP client connected")
+    )
+    client_log.info("MCP Client instance initialized directly.")
 
-        mcp_tools = await mcp_client.get_tools()
-        client_log.info("Fetched %d tools from MCP server", len(mcp_tools))
-        for t in mcp_tools:
-            client_log.debug("  tool: %s", t.name)
+    mcp_tools = await mcp_client.get_tools()
+    client_log.info("Successfully retrieved %d tools from MCP server", len(mcp_tools))
 
-        reflect  = make_reflect_tool(mcp_tools)
-        knowledge = make_knowledge_tool(mcp_tools)
-        agent_tools = [reflect, knowledge]
+    knowledge_tool = make_knowledge_tool(mcp_tools)
+    reflect_tool = make_reflect_tool(mcp_tools)
+    all_tools = list(mcp_tools) + [knowledge_tool, reflect_tool]
 
-        for mt in mcp_tools:
-            if mt.name not in ("reflect",):
-                agent_tools.append(mt)
+    client_log.info("Total active tools available to agent: %d", len(all_tools))
 
-        model = _pick_model()
-        client_log.info("Creating agent with model=%s tools=%d", model, len(agent_tools))
-
-        agent = create_agent(model, agent_tools)
-
-        client_log.info("Sending query to agent: %r", user_query[:80])
-        response = await agent.ainvoke(
-            {"messages": [{"role": "user", "content": user_query}]}
+    if model_name.startswith("openai:"):
+        from langchain_openai import ChatOpenAI
+        real_model = model_name.split(":")[1]
+        llm = ChatOpenAI(model=real_model, temperature=0.2)
+    elif model_name == "ollama":
+        from langchain_ollama import ChatOllama
+        llm = ChatOllama(
+            model="llama3.1",
+            temperature=0.2,
+            base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         )
+    else:
+        from langchain_anthropic import ChatAnthropic
+        llm = ChatAnthropic(model=model_name, temperature=0.2)
 
-        messages = response.get("messages", [])
-        final = messages[-1].content if messages else str(response)
-        if isinstance(final, list):
-            final = " ".join(
-                block.get("text", "") if isinstance(block, dict) else str(block)
-                for block in final
-            )
+    from langchain_classic.agents import AgentExecutor, create_openai_tools_agent
+    from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-        client_log.info("Agent response received (%d chars)", len(str(final)))
-        return str(final)
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are a helpful assistant."),
+        ("human", "{input}"),
+        MessagesPlaceholder(variable_name="agent_scratchpad"),
+    ])
+    agent = create_openai_tools_agent(llm, all_tools, prompt)
+    executor = AgentExecutor(agent=agent, tools=all_tools, verbose=False)
+
+    client_log.info("Executing agent workflow invoke pipeline")
+    response = await executor.ainvoke({"input": user_query})
+    
+    output = response.get("output", "")
+    client_log.info("Agent execution finished successfully (%d chars)", len(output))
+    return str(output)
 
 async def interactive_session() -> None:
     log_separator("INTERACTIVE SESSION START")
-    client_log.info("Thinking Agent | interactive mode")
-    client_log.info("Type 'quit' or 'exit' to stop.")
+    client_log.info("\nThinking Agent System Initialization Successful.")
+    client_log.info("Type your question below. Enter 'quit' or 'exit' to terminate.\n")
 
     while True:
         try:
@@ -116,17 +113,19 @@ async def interactive_session() -> None:
         except (EOFError, KeyboardInterrupt):
             break
 
-        if query.lower() in ("quit", "exit", "q"):
-            break
         if not query:
             continue
+        if query.lower() in ("quit", "exit"):
+            print("Goodbye!")
+            break
 
+        print("\nThinking...")
         try:
             answer = await run_agent(query)
-            print(f"\n🤖 Agent:\n{answer}\n")
+            print(f"\nAgent > {answer}\n")
         except Exception as exc:
             client_log.error("Agent error: %s", exc, exc_info=True)
-            print(f"\n❌ Error: {exc}\n")
+            print(f"\nError: {exc}\n")
 
     log_separator("INTERACTIVE SESSION END")
 

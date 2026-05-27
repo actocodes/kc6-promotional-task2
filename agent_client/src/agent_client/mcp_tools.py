@@ -130,6 +130,14 @@ def make_reflect_tool(mcp_client_tools: list):
 def make_knowledge_tool(mcp_client_tools: list):
     @tool
     async def query_knowledge_tool(query: str) -> str:
+        """
+        Query the enterprise hierarchical Corrective RAG (CRAG) knowledge resource.
+        Use this tool to find documentation about software architecture, patterns, 
+        LangChain, LangGraph, and other technical concepts.
+
+        Args:
+            query: The search term or engineering concept question to look up.
+        """
         client_log.info("Querying CRAG knowledge resource | query=%r", query)
 
         try:
