@@ -64,7 +64,13 @@ async def run_agent(user_query: str) -> str:
 
     knowledge_tool = make_knowledge_tool(mcp_tools)
     reflect_tool = make_reflect_tool(mcp_tools)
-    all_tools = list(mcp_tools) + [knowledge_tool, reflect_tool]
+    
+    base_tools = list(mcp_tools)
+    all_tools = [knowledge_tool]
+    
+    if reflect_tool not in base_tools:
+        all_tools.append(reflect_tool)
+    all_tools.extend(base_tools)
 
     client_log.info("Total active tools available to agent: %d", len(all_tools))
 
@@ -87,7 +93,7 @@ async def run_agent(user_query: str) -> str:
     from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are a helpful assistant."),
+        ("system", "You are an experienced software engineering assistant. Use the available tools to verify documentation and critique your answers for high accuracy."),
         ("human", "{input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad"),
     ])

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import urllib.parse
-
 import httpx
 from langchain_core.tools import tool
 
@@ -77,33 +76,7 @@ def make_reflect_tool(mcp_client_tools: list):
     mcp_reflect = next((t for t in mcp_client_tools if t.name == "reflect"), None)
 
     if mcp_reflect is not None:
-        @tool
-        async def reflect_tool(
-            draft_answer: str,
-            original_query: str,
-            constraints: str = "accurate, concise, well-structured",
-        ) -> str:
-            """
-            Critique and correct a draft answer using the server-side Reflection tool.
-            The server delegates LLM critique and correction back to this client via MCP Sampling.
-
-            Args:
-                draft_answer: The initial answer text to be improved.
-                original_query: The user's original question.
-                constraints: Comma-separated quality constraints.
-            Returns:
-                Critique + corrected answer string.
-            """
-            client_log.info("Calling MCP reflect tool via adapter")
-            result = await mcp_reflect.ainvoke({
-                "draft_answer": draft_answer,
-                "original_query": original_query,
-                "constraints": constraints,
-            })
-            client_log.info("reflect tool returned %d chars", len(str(result)))
-            return str(result)
-
-        return reflect_tool
+        return mcp_reflect
 
     @tool
     async def reflect_tool(

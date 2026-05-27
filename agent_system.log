@@ -1,152 +1,55 @@
-[2026-05-27 18:36:53] [CLIENT] [INFO] ======================================================================  DEMO RUN START  ======================================================================
-[2026-05-27 18:36:53] [CLIENT] [INFO] Running demo batch with 4 queries
-[2026-05-27 18:36:53] [CLIENT] [INFO] ─── Demo query 1/4 ───
-[2026-05-27 18:36:53] [CLIENT] [INFO] Initializing agent run for query: 'What is Corrective RAG and how does hierarchical indexing improve retrieval?'
-[2026-05-27 18:36:53] [CLIENT] [INFO] No cloud API keys detected. Falling back to local Ollama engine.
-[2026-05-27 18:36:53] [CLIENT] [INFO] Selected model: ollama
-[2026-05-27 18:36:53] [CLIENT] [INFO] Connecting to MCP server at http://localhost:8000/mcp
-[2026-05-27 18:36:53] [CLIENT] [INFO] MCP Client instance initialized directly.
-[2026-05-27 18:36:53] [CLIENT] [INFO] Successfully retrieved 1 tools from MCP server
-[2026-05-27 18:36:53] [CLIENT] [INFO] Total active tools available to agent: 3
-[2026-05-27 18:36:54] [CLIENT] [INFO] Executing agent workflow invoke pipeline
-[2026-05-27 18:38:00] [CLIENT] [INFO] Querying CRAG knowledge resource | query='Corrective RAG, hierarchical indexing in knowledge retrieval'
-[2026-05-27 18:38:00] [CLIENT] [INFO] CRAG resource returned 342 chars
-[2026-05-27 18:38:49] [CLIENT] [INFO] Agent execution finished successfully (613 chars)
-[2026-05-27 18:38:49] [CLIENT] [INFO] Demo query 1 complete (613 chars)
-[2026-05-27 18:38:49] [CLIENT] [INFO] ─── Demo query 2/4 ───
-[2026-05-27 18:38:49] [CLIENT] [INFO] Initializing agent run for query: "Explain how MCP Sampling works and why the server doesn't need an LLM API key."
-[2026-05-27 18:38:49] [CLIENT] [INFO] No cloud API keys detected. Falling back to local Ollama engine.
-[2026-05-27 18:38:49] [CLIENT] [INFO] Selected model: ollama
-[2026-05-27 18:38:49] [CLIENT] [INFO] Connecting to MCP server at http://localhost:8000/mcp
-[2026-05-27 18:38:49] [CLIENT] [INFO] MCP Client instance initialized directly.
-[2026-05-27 18:38:49] [CLIENT] [INFO] Successfully retrieved 1 tools from MCP server
-[2026-05-27 18:38:49] [CLIENT] [INFO] Total active tools available to agent: 3
-[2026-05-27 18:38:49] [CLIENT] [INFO] Executing agent workflow invoke pipeline
-[2026-05-27 18:39:58] [CLIENT] [ERROR] Demo query 2 failed: Error calling tool 'reflect': 'Starting reflection for query: Explain how MCP Sampling works and why the server doesn...'
-Traceback (most recent call last):
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/agent_client/src/agent_client/agent.py", line 148, in demo_run
-    answer = await run_agent(query)
-             ^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/agent_client/src/agent_client/agent.py", line 98, in run_agent
-    response = await executor.ainvoke({"input": user_query})
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_classic/chains/base.py", line 222, in ainvoke
-    await self._acall(inputs, run_manager=run_manager)
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_classic/agents/agent.py", line 1646, in _acall
-    next_step_output = await self._atake_next_step(
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_classic/agents/agent.py", line 1428, in _atake_next_step
-    [
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_classic/agents/agent.py", line 1511, in _aiter_next_step
-    result = await asyncio.gather(
-             ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_classic/agents/agent.py", line 1549, in _aperform_agent_action
-    observation = await tool.arun(
-                  ^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_core/tools/base.py", line 1131, in arun
-    raise error_to_raise
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_core/tools/base.py", line 1097, in arun
-    response = await coro_with_context(coro, context)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_core/tools/structured.py", line 124, in _arun
-    return await self.coroutine(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_mcp_adapters/tools.py", line 414, in call_tool
-    return _convert_call_tool_result(call_tool_result)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_mcp_adapters/tools.py", line 189, in _convert_call_tool_result
-    raise ToolException(error_msg)
-langchain_core.tools.base.ToolException: Error calling tool 'reflect': 'Starting reflection for query: Explain how MCP Sampling works and why the server doesn...'
-[2026-05-27 18:39:58] [CLIENT] [INFO] ─── Demo query 3/4 ───
-[2026-05-27 18:39:58] [CLIENT] [INFO] Initializing agent run for query: 'Give me a code example of creating a FastMCP server with a custom tool.'
-[2026-05-27 18:39:58] [CLIENT] [INFO] No cloud API keys detected. Falling back to local Ollama engine.
-[2026-05-27 18:39:58] [CLIENT] [INFO] Selected model: ollama
-[2026-05-27 18:39:58] [CLIENT] [INFO] Connecting to MCP server at http://localhost:8000/mcp
-[2026-05-27 18:39:58] [CLIENT] [INFO] MCP Client instance initialized directly.
-[2026-05-27 18:39:58] [CLIENT] [INFO] Successfully retrieved 1 tools from MCP server
-[2026-05-27 18:39:58] [CLIENT] [INFO] Total active tools available to agent: 3
-[2026-05-27 18:39:58] [CLIENT] [INFO] Executing agent workflow invoke pipeline
-[2026-05-27 18:40:08] [CLIENT] [INFO] Querying CRAG knowledge resource | query='Creating a FastMCP server with a custom tool'
-[2026-05-27 18:40:08] [CLIENT] [INFO] CRAG resource returned 310 chars
-[2026-05-27 18:41:58] [CLIENT] [INFO] Agent execution finished successfully (1760 chars)
-[2026-05-27 18:41:58] [CLIENT] [INFO] Demo query 3 complete (1760 chars)
-[2026-05-27 18:41:58] [CLIENT] [INFO] ─── Demo query 4/4 ───
-[2026-05-27 18:41:58] [CLIENT] [INFO] Initializing agent run for query: 'What are the key differences between LangChain agents and LangGraph state machines?'
-[2026-05-27 18:41:58] [CLIENT] [INFO] No cloud API keys detected. Falling back to local Ollama engine.
-[2026-05-27 18:41:58] [CLIENT] [INFO] Selected model: ollama
-[2026-05-27 18:41:58] [CLIENT] [INFO] Connecting to MCP server at http://localhost:8000/mcp
-[2026-05-27 18:41:58] [CLIENT] [INFO] MCP Client instance initialized directly.
-[2026-05-27 18:41:58] [CLIENT] [INFO] Successfully retrieved 1 tools from MCP server
-[2026-05-27 18:41:58] [CLIENT] [INFO] Total active tools available to agent: 3
-[2026-05-27 18:41:59] [CLIENT] [INFO] Executing agent workflow invoke pipeline
-[2026-05-27 18:42:53] [CLIENT] [INFO] Querying CRAG knowledge resource | query='LangChain vs LangGraph, key differences'
-[2026-05-27 18:42:53] [CLIENT] [INFO] CRAG resource returned 296 chars
-[2026-05-27 18:43:48] [CLIENT] [INFO] Agent execution finished successfully (780 chars)
-[2026-05-27 18:43:48] [CLIENT] [INFO] Demo query 4 complete (780 chars)
-[2026-05-27 18:43:48] [CLIENT] [INFO] ======================================================================  DEMO RUN END  ======================================================================
-[2026-05-27 18:52:12] [CLIENT] [INFO] ======================================================================  INTERACTIVE SESSION START  ======================================================================
-[2026-05-27 18:52:12] [CLIENT] [INFO] 
-Thinking Agent System Initialization Successful.
-[2026-05-27 18:52:12] [CLIENT] [INFO] Type your question below. Enter 'quit' or 'exit' to terminate.
-
-[2026-05-27 18:52:19] [CLIENT] [INFO] Initializing agent run for query: 'who are you'
-[2026-05-27 18:52:19] [CLIENT] [INFO] No cloud API keys detected. Falling back to local Ollama engine.
-[2026-05-27 18:52:19] [CLIENT] [INFO] Selected model: ollama
-[2026-05-27 18:52:19] [CLIENT] [INFO] Connecting to MCP server at http://localhost:8000/mcp
-[2026-05-27 18:52:19] [CLIENT] [INFO] MCP Client instance initialized directly.
-[2026-05-27 18:52:19] [CLIENT] [INFO] Successfully retrieved 1 tools from MCP server
-[2026-05-27 18:52:19] [CLIENT] [INFO] Total active tools available to agent: 3
-[2026-05-27 18:52:19] [CLIENT] [INFO] Executing agent workflow invoke pipeline
-[2026-05-27 18:53:27] [CLIENT] [INFO] Calling MCP reflect tool via adapter
-[2026-05-27 18:53:27] [CLIENT] [ERROR] Agent error: Error calling tool 'reflect': 'Starting reflection for query: who are you...'
-Traceback (most recent call last):
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/agent_client/src/agent_client/agent.py", line 124, in interactive_session
-    answer = await run_agent(query)
-             ^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/agent_client/src/agent_client/agent.py", line 98, in run_agent
-    response = await executor.ainvoke({"input": user_query})
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_classic/chains/base.py", line 222, in ainvoke
-    await self._acall(inputs, run_manager=run_manager)
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_classic/agents/agent.py", line 1646, in _acall
-    next_step_output = await self._atake_next_step(
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_classic/agents/agent.py", line 1428, in _atake_next_step
-    [
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_classic/agents/agent.py", line 1511, in _aiter_next_step
-    result = await asyncio.gather(
-             ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_classic/agents/agent.py", line 1549, in _aperform_agent_action
-    observation = await tool.arun(
-                  ^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_core/tools/base.py", line 1131, in arun
-    raise error_to_raise
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_core/tools/base.py", line 1097, in arun
-    response = await coro_with_context(coro, context)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_core/tools/structured.py", line 124, in _arun
-    return await self.coroutine(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/agent_client/src/agent_client/mcp_tools.py", line 98, in reflect_tool
-    result = await mcp_reflect.ainvoke({
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_core/tools/structured.py", line 70, in ainvoke
-    return await super().ainvoke(input, config, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_core/tools/base.py", line 652, in ainvoke
-    return await self.arun(tool_input, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_core/tools/base.py", line 1131, in arun
-    raise error_to_raise
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_core/tools/base.py", line 1097, in arun
-    response = await coro_with_context(coro, context)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_core/tools/structured.py", line 124, in _arun
-    return await self.coroutine(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_mcp_adapters/tools.py", line 414, in call_tool
-    return _convert_call_tool_result(call_tool_result)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/acto/Desktop/work/actocodes/kc6-promotional-task2/.venv/lib/python3.12/site-packages/langchain_mcp_adapters/tools.py", line 189, in _convert_call_tool_result
-    raise ToolException(error_msg)
-langchain_core.tools.base.ToolException: Error calling tool 'reflect': 'Starting reflection for query: who are you...'
+[2026-05-27 19:10:32] [CLIENT] [INFO] ======================================================================  DEMO RUN START  ======================================================================
+[2026-05-27 19:10:32] [CLIENT] [INFO] Running demo batch with 4 queries
+[2026-05-27 19:10:32] [CLIENT] [INFO] ─── Demo query 1/4 ───
+[2026-05-27 19:10:32] [CLIENT] [INFO] Initializing agent run for query: 'What is Corrective RAG and how does hierarchical indexing improve retrieval?'
+[2026-05-27 19:10:32] [CLIENT] [INFO] No cloud API keys detected. Falling back to local Ollama engine.
+[2026-05-27 19:10:32] [CLIENT] [INFO] Selected model: ollama
+[2026-05-27 19:10:32] [CLIENT] [INFO] Connecting to MCP server at http://localhost:8000/mcp
+[2026-05-27 19:10:32] [CLIENT] [INFO] MCP Client instance initialized directly.
+[2026-05-27 19:10:32] [CLIENT] [INFO] Successfully retrieved 1 tools from MCP server
+[2026-05-27 19:10:32] [CLIENT] [INFO] Total active tools available to agent: 2
+[2026-05-27 19:10:32] [CLIENT] [INFO] Executing agent workflow invoke pipeline
+[2026-05-27 19:11:03] [CLIENT] [INFO] Querying CRAG knowledge resource | query='Corrective RAG, hierarchical indexing for retrieval'
+[2026-05-27 19:11:04] [CLIENT] [INFO] CRAG resource returned 322 chars
+[2026-05-27 19:12:12] [CLIENT] [INFO] Agent execution finished successfully (898 chars)
+[2026-05-27 19:12:12] [CLIENT] [INFO] Demo query 1 complete (898 chars)
+[2026-05-27 19:12:12] [CLIENT] [INFO] ─── Demo query 2/4 ───
+[2026-05-27 19:12:12] [CLIENT] [INFO] Initializing agent run for query: "Explain how MCP Sampling works and why the server doesn't need an LLM API key."
+[2026-05-27 19:12:12] [CLIENT] [INFO] No cloud API keys detected. Falling back to local Ollama engine.
+[2026-05-27 19:12:12] [CLIENT] [INFO] Selected model: ollama
+[2026-05-27 19:12:12] [CLIENT] [INFO] Connecting to MCP server at http://localhost:8000/mcp
+[2026-05-27 19:12:12] [CLIENT] [INFO] MCP Client instance initialized directly.
+[2026-05-27 19:12:12] [CLIENT] [INFO] Successfully retrieved 1 tools from MCP server
+[2026-05-27 19:12:12] [CLIENT] [INFO] Total active tools available to agent: 2
+[2026-05-27 19:12:13] [CLIENT] [INFO] Executing agent workflow invoke pipeline
+[2026-05-27 19:13:07] [CLIENT] [INFO] Querying CRAG knowledge resource | query='MCP Sampling, no LLM API key required for servers'
+[2026-05-27 19:13:07] [CLIENT] [INFO] CRAG resource returned 324 chars
+[2026-05-27 19:15:36] [CLIENT] [INFO] Agent execution finished successfully (1646 chars)
+[2026-05-27 19:15:36] [CLIENT] [INFO] Demo query 2 complete (1646 chars)
+[2026-05-27 19:15:36] [CLIENT] [INFO] ─── Demo query 3/4 ───
+[2026-05-27 19:15:36] [CLIENT] [INFO] Initializing agent run for query: 'Give me a code example of creating a FastMCP server with a custom tool.'
+[2026-05-27 19:15:36] [CLIENT] [INFO] No cloud API keys detected. Falling back to local Ollama engine.
+[2026-05-27 19:15:36] [CLIENT] [INFO] Selected model: ollama
+[2026-05-27 19:15:36] [CLIENT] [INFO] Connecting to MCP server at http://localhost:8000/mcp
+[2026-05-27 19:15:36] [CLIENT] [INFO] MCP Client instance initialized directly.
+[2026-05-27 19:15:36] [CLIENT] [INFO] Successfully retrieved 1 tools from MCP server
+[2026-05-27 19:15:36] [CLIENT] [INFO] Total active tools available to agent: 2
+[2026-05-27 19:15:36] [CLIENT] [INFO] Executing agent workflow invoke pipeline
+[2026-05-27 19:16:30] [CLIENT] [INFO] Querying CRAG knowledge resource | query='FastMCP server creation with custom tool'
+[2026-05-27 19:16:30] [CLIENT] [INFO] CRAG resource returned 298 chars
+[2026-05-27 19:18:55] [CLIENT] [INFO] Agent execution finished successfully (1363 chars)
+[2026-05-27 19:18:55] [CLIENT] [INFO] Demo query 3 complete (1363 chars)
+[2026-05-27 19:18:55] [CLIENT] [INFO] ─── Demo query 4/4 ───
+[2026-05-27 19:18:55] [CLIENT] [INFO] Initializing agent run for query: 'What are the key differences between LangChain agents and LangGraph state machines?'
+[2026-05-27 19:18:55] [CLIENT] [INFO] No cloud API keys detected. Falling back to local Ollama engine.
+[2026-05-27 19:18:55] [CLIENT] [INFO] Selected model: ollama
+[2026-05-27 19:18:55] [CLIENT] [INFO] Connecting to MCP server at http://localhost:8000/mcp
+[2026-05-27 19:18:55] [CLIENT] [INFO] MCP Client instance initialized directly.
+[2026-05-27 19:18:56] [CLIENT] [INFO] Successfully retrieved 1 tools from MCP server
+[2026-05-27 19:18:56] [CLIENT] [INFO] Total active tools available to agent: 2
+[2026-05-27 19:18:56] [CLIENT] [INFO] Executing agent workflow invoke pipeline
+[2026-05-27 19:19:49] [CLIENT] [INFO] Querying CRAG knowledge resource | query='LangChain vs LangGraph, key differences'
+[2026-05-27 19:19:50] [CLIENT] [INFO] CRAG resource returned 296 chars
+[2026-05-27 19:21:39] [CLIENT] [INFO] Agent execution finished successfully (1193 chars)
+[2026-05-27 19:21:39] [CLIENT] [INFO] Demo query 4 complete (1193 chars)
+[2026-05-27 19:21:39] [CLIENT] [INFO] ======================================================================  DEMO RUN END  ======================================================================
