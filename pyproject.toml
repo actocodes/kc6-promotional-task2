@@ -1,13 +1,12 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[project]
-name = "thinking-agent-stage2"
-version = "0.1.0"
-description = "Distributed Thinking Agent: FastMCP Server + LangChain Agent Client"
-readme = "README.md"
-requires-python = ">=3.11"
-
 [tool.uv]
 workspace = { members = ["mcp_server", "agent_client"] }
+
+[tool.uv.sources]
+mcp_server = { workspace = true }
+agent_client = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "mcp_server",
+    "agent_client",
+]

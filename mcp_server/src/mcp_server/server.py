@@ -1,24 +1,12 @@
-"""
-server.py
----------
-FastMCP Server — Streamable HTTP transport
-Exposes:
-  @tool   reflect()        — Critic + Correction loop via MCP Sampling
-  @resource knowledge://domain/docs  — Hierarchical CRAG knowledge base
-"""
-
 from __future__ import annotations
 
 import logging
 import sys
-from datetime import datetime
 
 from fastmcp import FastMCP, Context
 from mcp.types import SamplingMessage, TextContent
 
 from .crag_engine import run_crag
-
-# ── Logging setup ──────────────────────────────────────────────────────────────
 
 def _make_logger() -> logging.Logger:
     fmt = "[%(asctime)s] [SERVER] [%(levelname)s] %(message)s"
@@ -34,8 +22,6 @@ def _make_logger() -> logging.Logger:
 
 logger = _make_logger()
 
-# ── FastMCP app ────────────────────────────────────────────────────────────────
-
 mcp = FastMCP(
     name="ThinkingAgentServer",
     instructions=(
@@ -45,11 +31,6 @@ mcp = FastMCP(
     ),
 )
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# Tool: reflect
-# ═══════════════════════════════════════════════════════════════════════════════
-
 @mcp.tool
 async def reflect(
     draft_answer: str,
@@ -57,25 +38,9 @@ async def reflect(
     constraints: str,
     ctx: Context,
 ) -> str:
-    """
-    Reflection tool: critique a draft answer then produce a corrected version.
-
-    Uses MCP Sampling to delegate TWO LLM calls back to the client:
-      1. Critic pass  – identify flaws against constraints.
-      2. Correction   – rewrite the answer addressing the critique.
-
-    Args:
-        draft_answer:    The initial answer to be critiqued.
-        original_query:  The user's original question.
-        constraints:     Comma-separated quality constraints (e.g. "concise,accurate,cited").
-
-    Returns:
-        A corrected, improved answer string.
-    """
     logger.info("Reflection tool invoked | query=%r", original_query[:80])
     await ctx.log("info", f"Starting reflection for query: {original_query[:60]}...")
 
-    # ── Critic Pass ────────────────────────────────────────────────────────────
     logger.debug("Initiating Critic sampling pass")
     await ctx.log("debug", "Sampling: Critic pass initiated")
 
@@ -110,7 +75,6 @@ async def reflect(
     logger.info("Critic pass complete | critique_length=%d chars", len(critique))
     await ctx.log("info", f"Critic pass complete ({len(critique)} chars)")
 
-    # ── Correction Pass ────────────────────────────────────────────────────────
     logger.debug("Initiating Correction sampling pass")
     await ctx.log("debug", "Sampling: Correction pass initiated")
 
@@ -146,7 +110,7 @@ async def reflect(
     logger.info(
         "Correction pass complete | corrected_length=%d chars", len(corrected)
     )
-    await ctx.log("info", "Reflection complete — corrected answer produced")
+    await ctx.log("info", "Reflection complete, corrected answer produced")
 
     return (
         f"## Reflection Result\n\n"
@@ -154,23 +118,12 @@ async def reflect(
         f"### Corrected Answer\n{corrected}"
     )
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# Resource: knowledge://domain/docs
-# ═══════════════════════════════════════════════════════════════════════════════
-
 @mcp.resource("knowledge://domain/docs")
 async def domain_knowledge_resource(ctx: Context) -> str:
-    """
-    Enterprise knowledge base resource.
-
-    Returns a static index of all available knowledge domains.
-    Use the 'query_knowledge' tool to search specific topics.
-    """
     logger.info("Resource 'knowledge://domain/docs' accessed (index request)")
     await ctx.log("info", "Knowledge base index resource accessed")
 
-    lines = ["# Enterprise Knowledge Base — Domain Index\n"]
+    lines = ["# Enterprise Knowledge Base. Domain Index\n"]
     lines.append("Use the `query_knowledge` tool to search specific topics.\n\n")
     lines.append("## Available Domains\n")
 
@@ -183,15 +136,6 @@ async def domain_knowledge_resource(ctx: Context) -> str:
 
 @mcp.resource("knowledge://domain/docs/{query}")
 async def domain_knowledge_search(query: str, ctx: Context) -> str:
-    """
-    CRAG-powered knowledge search resource.
-
-    Performs multi-query expansion → hierarchical retrieval →
-    Tree-of-Thought evaluation → optional Tavily fallback.
-
-    Args:
-        query: URL-encoded search query string.
-    """
     logger.info("CRAG resource called | query=%r", query)
     await ctx.log("info", f"CRAG resource: processing query '{query}'")
     await ctx.log("debug", "Initiating ToT Evaluation on Resource...")
@@ -201,13 +145,7 @@ async def domain_knowledge_search(query: str, ctx: Context) -> str:
     await ctx.log("info", "CRAG pipeline complete")
     return result
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# Entry point
-# ═══════════════════════════════════════════════════════════════════════════════
-
 def main() -> None:
-    import uvicorn
     logger.info("ThinkingAgentServer starting on http://0.0.0.0:8000/mcp")
     mcp.run(transport="http", host="0.0.0.0", port=8000)
 

@@ -1,16 +1,3 @@
-"""
-crag_engine.py
---------------
-Corrective RAG engine implementing:
-  1. Multi-query expansion
-  2. Hierarchical BM25 indexing (level-0 → level-1 → level-2)
-  3. Tree-of-Thought (ToT) relevance evaluation (3-path scoring)
-  4. Tavily fallback when internal docs score below threshold
-
-No external LLM is invoked here directly – expansion uses lightweight
-heuristics so the module stays self-contained and fast.
-"""
-
 from __future__ import annotations
 
 import logging
