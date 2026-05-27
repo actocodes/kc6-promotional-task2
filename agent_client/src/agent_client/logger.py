@@ -1,15 +1,3 @@
-"""
-logger.py
----------
-Dual-stream observability layer.
-
-Writes TWO interleaved log streams to agent_system.log:
-  [CLIENT] entries – local orchestration events
-  [SERVER] entries – forwarded MCP server notifications
-
-Both streams share the same file handler to produce a unified, scannable log.
-"""
-
 from __future__ import annotations
 
 import logging
@@ -19,23 +7,16 @@ from pathlib import Path
 LOG_FILE = Path("agent_system.log")
 _DATE_FMT = "%Y-%m-%d %H:%M:%S"
 
-# ── Custom formatter ───────────────────────────────────────────────────────────
-
 class _PrefixFormatter(logging.Formatter):
-    """Injects [CLIENT] or [SERVER] tag into every record."""
-
     def __init__(self, prefix: str) -> None:
         super().__init__(
             fmt=f"[%(asctime)s] [{prefix}] [%(levelname)s] %(message)s",
             datefmt=_DATE_FMT,
         )
 
-
-# ── Logger factory ─────────────────────────────────────────────────────────────
-
 def _build_logger(name: str, prefix: str, level: int = logging.DEBUG) -> logging.Logger:
     log = logging.getLogger(name)
-    if log.handlers:          # avoid duplicate handlers on reimport
+    if log.handlers:
         return log
     log.setLevel(level)
 
@@ -52,18 +33,10 @@ def _build_logger(name: str, prefix: str, level: int = logging.DEBUG) -> logging
     log.propagate = False
     return log
 
-
-# ── Public loggers ─────────────────────────────────────────────────────────────
-
 client_log: logging.Logger = _build_logger("agent_client.client", "CLIENT")
 server_log: logging.Logger = _build_logger("agent_client.server", "SERVER")
 
-
 def ingest_server_log(level: str, message: str) -> None:
-    """
-    Called by the MCP log-notification callback to forward server messages
-    into the unified log file under the [SERVER] prefix.
-    """
     level_map = {
         "debug":    logging.DEBUG,
         "info":     logging.INFO,
@@ -78,7 +51,6 @@ def ingest_server_log(level: str, message: str) -> None:
 
 
 def log_separator(label: str = "") -> None:
-    """Write a visible separator to the log file."""
     sep = "=" * 70
     line = f"{sep}  {label}  {sep}" if label else sep
     client_log.info(line)

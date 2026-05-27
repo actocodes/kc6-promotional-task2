@@ -1,17 +1,3 @@
-"""
-agent.py
---------
-AI Agent (MCP Client) — LangChain create_agent + MultiServerMCPClient
-
-Responsibilities:
-  1. Connect to the FastMCP server via streamable-http transport.
-  2. Fetch remote tools; wrap them as LangChain @tool objects.
-  3. Register a sampling handler so the server's Reflection tool can
-     delegate LLM calls back to THIS process.
-  4. Forward server log notifications into agent_system.log.
-  5. Run an interactive multi-turn session (or batch demo).
-"""
-
 from __future__ import annotations
 
 import asyncio
@@ -21,7 +7,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Load .env before any imports that need API keys
 load_dotenv()
 
 from langchain.agents import create_agent
@@ -35,7 +20,6 @@ from .sampling_handler import handle_sampling
 
 MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://localhost:8000/mcp")
 
-# Choose model: prefer Anthropic, fall back to OpenAI
 def _pick_model() -> str:
     if os.getenv("ANTHROPIC_API_KEY"):
         return "claude-sonnet-4-5"
@@ -45,35 +29,19 @@ def _pick_model() -> str:
         "No LLM API key found. Set ANTHROPIC_API_KEY or OPENAI_API_KEY in .env"
     )
 
-
-# ── Server log callback ────────────────────────────────────────────────────────
-
-async def _on_server_log(
+def _on_server_log(
     params: LoggingMessageNotificationParams,
     context: CallbackContext,
 ) -> None:
-    """Forward MCP server log notifications into agent_system.log."""
     level = params.level if isinstance(params.level, str) else str(params.level)
     data  = params.data if isinstance(params.data, str) else str(params.data)
     ingest_server_log(level, f"[{context.server_name}] {data}")
 
-
-# ── Core agent runner ──────────────────────────────────────────────────────────
-
 async def run_agent(user_query: str) -> str:
-    """
-    Run a single agent turn against the MCP server.
-
-    1. Open a MultiServerMCPClient connection with callbacks and sampling handler.
-    2. Fetch MCP tools; wrap as LangChain tools.
-    3. create_agent and ainvoke.
-    4. Return final response text.
-    """
     client_log.info("Connecting to MCP server at %s", MCP_SERVER_URL)
 
     callbacks = Callbacks(on_logging_message=_on_server_log)
 
-    # FastMCP's built-in Anthropic sampling handler wires ctx.sample() → our LLM
     from fastmcp.client.sampling.handlers.anthropic import AnthropicSamplingHandler
     from fastmcp import Client as FastMCPClient
 
@@ -102,18 +70,15 @@ async def run_agent(user_query: str) -> str:
     ) as mcp_client:
         client_log.info("MCP client connected")
 
-        # Fetch remote tools
         mcp_tools = await mcp_client.get_tools()
         client_log.info("Fetched %d tools from MCP server", len(mcp_tools))
         for t in mcp_tools:
             client_log.debug("  tool: %s", t.name)
 
-        # Build wrapped LangChain tool list
         reflect  = make_reflect_tool(mcp_tools)
         knowledge = make_knowledge_tool(mcp_tools)
         agent_tools = [reflect, knowledge]
 
-        # Also pass through any other MCP tools not explicitly wrapped
         for mt in mcp_tools:
             if mt.name not in ("reflect",):
                 agent_tools.append(mt)
@@ -128,7 +93,6 @@ async def run_agent(user_query: str) -> str:
             {"messages": [{"role": "user", "content": user_query}]}
         )
 
-        # Extract final text
         messages = response.get("messages", [])
         final = messages[-1].content if messages else str(response)
         if isinstance(final, list):
@@ -140,17 +104,15 @@ async def run_agent(user_query: str) -> str:
         client_log.info("Agent response received (%d chars)", len(str(final)))
         return str(final)
 
-
-# ── Multi-turn interactive session ─────────────────────────────────────────────
-
 async def interactive_session() -> None:
     log_separator("INTERACTIVE SESSION START")
-    client_log.info("Thinking Agent Stage 2 — interactive mode")
+    client_log.info("Thinking Agent | interactive mode")
     client_log.info("Type 'quit' or 'exit' to stop.")
 
     while True:
         try:
-            query = input("\n🤔 You: ").strip()
+            query = await asyncio.to_thread(input, "\nYou: ")
+            query = query.strip()
         except (EOFError, KeyboardInterrupt):
             break
 
@@ -162,14 +124,11 @@ async def interactive_session() -> None:
         try:
             answer = await run_agent(query)
             print(f"\n🤖 Agent:\n{answer}\n")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             client_log.error("Agent error: %s", exc, exc_info=True)
             print(f"\n❌ Error: {exc}\n")
 
     log_separator("INTERACTIVE SESSION END")
-
-
-# ── Demo batch run ─────────────────────────────────────────────────────────────
 
 DEMO_QUERIES = [
     "What is Corrective RAG and how does hierarchical indexing improve retrieval?",
@@ -177,7 +136,6 @@ DEMO_QUERIES = [
     "Give me a code example of creating a FastMCP server with a custom tool.",
     "What are the key differences between LangChain agents and LangGraph state machines?",
 ]
-
 
 async def demo_run() -> None:
     log_separator("DEMO RUN START")
@@ -194,13 +152,10 @@ async def demo_run() -> None:
             print(f"Q{i}: {query}")
             print(f"{'─'*60}")
             print(answer[:800] + ("…" if len(answer) > 800 else ""))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             client_log.error("Demo query %d failed: %s", i, exc, exc_info=True)
 
     log_separator("DEMO RUN END")
-
-
-# ── Entry point ────────────────────────────────────────────────────────────────
 
 def main() -> None:
     mode = sys.argv[1] if len(sys.argv) > 1 else "interactive"

@@ -1,18 +1,6 @@
-"""
-knowledge_base.py
------------------
-Hierarchical enterprise knowledge base for the CRAG resource.
-
-Structure:
-  Level 0 – Domain summaries   (coarse-grain)
-  Level 1 – Topic overviews    (mid-grain)
-  Level 2 – Granular code/doc chunks (fine-grain)
-"""
-
 from __future__ import annotations
 
 KNOWLEDGE_BASE: list[dict] = [
-    # ── LEVEL 0 ── Domain summary ─────────────────────────────────────────────
     {
         "id": "L0-AI",
         "level": 0,
@@ -38,7 +26,6 @@ KNOWLEDGE_BASE: list[dict] = [
         ),
         "children": ["L1-MCP", "L1-AGENTS"],
     },
-    # ── LEVEL 1 ── Topic overviews ─────────────────────────────────────────────
     {
         "id": "L1-LLM",
         "level": 1,
@@ -91,7 +78,6 @@ KNOWLEDGE_BASE: list[dict] = [
         ),
         "children": ["L2-LANGCHAIN", "L2-LANGGRAPH"],
     },
-    # ── LEVEL 2 ── Granular code/doc chunks ────────────────────────────────────
     {
         "id": "L2-SAMPLING",
         "level": 2,
@@ -116,7 +102,7 @@ KNOWLEDGE_BASE: list[dict] = [
         "text": (
             "Chain-of-Thought (CoT): instruct the model to think step-by-step before answering.\n"
             "Tree-of-Thought (ToT): branch multiple reasoning paths and evaluate each.\n"
-            "ReAct: alternate Thought → Action → Observation cycles.\n"
+            "ReAct: alternate Thought -> Action -> Observation cycles.\n"
             "Self-Critique / Reflection: ask the model to review its own output and correct errors.\n"
             "Few-shot prompting: include worked examples in the context window."
         ),
@@ -128,11 +114,11 @@ KNOWLEDGE_BASE: list[dict] = [
         "parent": "L1-RAG",
         "text": (
             "CRAG pipeline:\n"
-            "1. Multi-query expansion – generate N semantic variations of the user query.\n"
-            "2. Hierarchical retrieval – search level-0 summaries, then drill into level-1/2 chunks.\n"
-            "3. ToT evaluation – score each retrieved chunk on relevance (0-10); prune scores < 5.\n"
-            "4. Fallback – if all scores < 5, call external search (Tavily) to augment context.\n"
-            "5. Synthesis – concatenate surviving chunks and return as the resource payload.\n"
+            "1. Multi-query expansion, generate N semantic variations of the user query.\n"
+            "2. Hierarchical retrieval, search level-0 summaries, then drill into level-1/2 chunks.\n"
+            "3. ToT evaluation, score each retrieved chunk on relevance (0-10); prune scores < 5.\n"
+            "4. Fallback, if all scores < 5, call external search (Tavily) to augment context.\n"
+            "5. Synthesis, concatenate surviving chunks and return as the resource payload.\n"
             "Python skeleton:\n"
             "  expanded = expand_queries(query, n=3)\n"
             "  chunks = hierarchical_search(expanded)\n"
@@ -232,8 +218,6 @@ KNOWLEDGE_BASE: list[dict] = [
         ),
     },
 ]
-
-# ── Index helpers ──────────────────────────────────────────────────────────────
 
 _by_id: dict[str, dict] = {doc["id"]: doc for doc in KNOWLEDGE_BASE}
 

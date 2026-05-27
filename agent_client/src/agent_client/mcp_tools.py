@@ -1,13 +1,3 @@
-"""
-mcp_tools.py
-------------
-Wraps remote MCP server capabilities as native LangChain @tool functions.
-
-Two wrappers:
-  reflect_tool()        — calls the server's 'reflect' MCP tool
-  query_knowledge_tool() — reads the server's CRAG resource
-"""
-
 from __future__ import annotations
 
 import urllib.parse
@@ -19,18 +9,8 @@ from .logger import client_log
 
 MCP_SERVER_URL = "http://localhost:8000/mcp"
 
-
-# ── Helper: raw HTTP MCP call ──────────────────────────────────────────────────
-# We use httpx directly for the resource fetch because langchain-mcp-adapters
-# exposes resources via get_resources(), but we also want the agent to be able
-# to call the resource dynamically as a @tool.
-
 async def _call_mcp_tool(tool_name: str, arguments: dict) -> str:
-    """
-    Execute a tool on the FastMCP server over Streamable HTTP.
-    Returns the text content of the first result block.
-    """
-    import json, uuid
+    import uuid
 
     payload = {
         "jsonrpc": "2.0",
@@ -39,7 +19,6 @@ async def _call_mcp_tool(tool_name: str, arguments: dict) -> str:
         "params": {"name": tool_name, "arguments": arguments},
     }
     async with httpx.AsyncClient(timeout=60) as client:
-        # Establish session
         init_payload = {
             "jsonrpc": "2.0",
             "id": str(uuid.uuid4()),
@@ -57,18 +36,15 @@ async def _call_mcp_tool(tool_name: str, arguments: dict) -> str:
         if session_id:
             headers["mcp-session-id"] = session_id
 
-        # Call the tool
         tool_resp = await client.post(MCP_SERVER_URL, json=payload, headers=headers)
         tool_resp.raise_for_status()
 
-        # Parse SSE or JSON
         raw = tool_resp.text
         result_text = _parse_mcp_response(raw)
         return result_text
 
 
 def _parse_mcp_response(raw: str) -> str:
-    """Extract text content from SSE stream or plain JSON MCP response."""
     import json
 
     lines = [l.strip() for l in raw.splitlines() if l.strip()]
@@ -86,7 +62,6 @@ def _parse_mcp_response(raw: str) -> str:
                     return "\n".join(texts)
             except json.JSONDecodeError:
                 pass
-    # Fallback: try plain JSON
     try:
         data = json.loads(raw)
         result = data.get("result", {})
@@ -98,23 +73,10 @@ def _parse_mcp_response(raw: str) -> str:
         pass
     return raw
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# LangChain @tool wrappers
-# ═══════════════════════════════════════════════════════════════════════════════
-
 def make_reflect_tool(mcp_client_tools: list):
-    """
-    Return a LangChain @tool that wraps the MCP server's 'reflect' tool.
-    Uses the MCP client tools list when available, falls back to direct HTTP.
-    """
-    # Find the reflect tool from the fetched MCP tools list
     mcp_reflect = next((t for t in mcp_client_tools if t.name == "reflect"), None)
 
     if mcp_reflect is not None:
-        # Wrap the native MCP tool with logging
-        original_func = mcp_reflect.coroutine or mcp_reflect.func
-
         @tool
         async def reflect_tool(
             draft_answer: str,
@@ -143,7 +105,6 @@ def make_reflect_tool(mcp_client_tools: list):
 
         return reflect_tool
 
-    # Fallback: direct HTTP call
     @tool
     async def reflect_tool(
         draft_answer: str,
@@ -167,26 +128,10 @@ def make_reflect_tool(mcp_client_tools: list):
 
 
 def make_knowledge_tool(mcp_client_tools: list):
-    """
-    Return a LangChain @tool that reads the server's CRAG knowledge resource
-    by invoking it as a query.
-    """
     @tool
     async def query_knowledge_tool(query: str) -> str:
-        """
-        Query the enterprise knowledge base using Corrective RAG (CRAG).
-
-        The server performs multi-query expansion, hierarchical BM25 retrieval,
-        Tree-of-Thought relevance scoring, and optional Tavily web fallback.
-
-        Args:
-            query: The topic or question to look up in the knowledge base.
-        Returns:
-            Relevant knowledge chunks ranked by ToT relevance score.
-        """
         client_log.info("Querying CRAG knowledge resource | query=%r", query)
 
-        # Try to use MCP resource via HTTP
         try:
             encoded = urllib.parse.quote(query, safe="")
             import json, uuid, httpx as _httpx
@@ -202,7 +147,6 @@ def make_knowledge_tool(mcp_client_tools: list):
                 "Accept": "application/json, text/event-stream",
             }
 
-            # Init session
             init_payload = {
                 "jsonrpc": "2.0",
                 "id": str(uuid.uuid4()),
